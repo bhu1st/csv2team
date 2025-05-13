@@ -55,9 +55,13 @@
         
         h1 {
             color: var(--secondary-color);
-            margin-bottom: 20px;
             text-align: center;
+			margin: 0;
         }
+		
+		h3 {
+			text-align:center;
+		}
 		
 		p.description {
 			text-align:center;
@@ -68,11 +72,11 @@
 		}
         
         .input-section {
-            background-color: white;
+            background-color: #ddd;
             padding: 20px;
             border-radius: var(--border-radius);
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin: 50px 0;
+            margin: 30px 0;
         }
 		
 		.footer p {
@@ -406,8 +410,15 @@
 <body>
     <div class="container">
         <h1>csv2team</h1>
-		<p class="description">Generate Company's Team Page HTML from CSV</p>
-		<p class="description">(Download <a target="_blank" href="https://docs.google.com/spreadsheets/d/1Xd4s4M7uRPC5OALeMRA2lcEZot_EJUkrsRPuk2cASwM/edit?usp=sharing">Google Sheet Template</a>)</p>
+		<p class="description">Generate Your Company Team Page HTML from CSV</p>
+		<h3>How to Use</h3>
+		<p class="description">
+			1. Copy <a target="_blank" href="https://docs.google.com/spreadsheets/d/1Xd4s4M7uRPC5OALeMRA2lcEZot_EJUkrsRPuk2cASwM/edit?usp=sharing">Google Sheet Template</a><br/> 
+			2. Enter team information in the sheet<br/>
+			3. Export the sheet to a CSV file<br/> 
+			4. Paste the CSV data in the input box below<br/>
+			5. Generate and use the HTML on your website.
+		</p>
         <div class="input-section">
             <h2>Paste Your Team Member Details in csv Format</h2>
             <textarea id="csvInput" wrap = "off" placeholder="Paste your CSV data here...">First Name,Last Name,Job Title/Position,Department/Team,Office Location,Public Email Address,Public Phone Number,Profile Picture URL/Filename,Short Bio/Description,Areas of Expertise/Skills,LinkedIn Profile URL,Twitter/X Profile URL,Start Date with Company,Personal Quote,Fun Facts,Order/Display Rank
