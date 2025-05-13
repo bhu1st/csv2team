@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="author" content="Bhupal Sapkota">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Convert CSV data into beautiful team directory pages with this free online tool. Customize displays, group by department or rank, and export ready-to-use HTML code.">
+
+	<meta name="keywords" content="csv2team, team directory generator, employee directory, team page creator, CSV to HTML, team profile generator, staff directory tool, team roster builder, company directory maker, employee profile generator, team webpage builder, organization chart generator, CSV converter, team visualization tool, staff listing creator, team member showcase">
+
+	<meta property="og:title" content="csv2team - Team Directory Generator - Create Custom Team Pages from CSV Data">
+	<meta property="og:description" content="Transform your CSV employee data into professional team directory pages. Customize, preview, and export HTML code instantly.">
+	<meta property="og:type" content="website">
+	<meta property="og:image" content="csv2team.png">
+	<meta property="og:url" content="https://csv2team.com">
+
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:title" content="csv2team - Team Directory Generator - CSV to Team Pages">
+	<meta name="twitter:description" content="Create customized team directory pages from CSV data with this free tool. Preview and export HTML instantly.">
+	<meta name="twitter:image" content="csv2team.png">
+
+	<title>csv2team - Team Directory Generator</title>
+    
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --light-gray: #f5f5f5;
+            --medium-gray: #e0e0e0;
+            --dark-gray: #666;
+            --border-radius: 8px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f9f9f9;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+		
+		p.description {
+			text-align:center;
+		}
+		
+		#csvInput {
+			margin:10px 0;
+		}
+        
+        .input-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin: 50px 0;
+        }
+		
+		.footer p {
+			font-size:0.9em;
+			text-align:center;
+		}
+        
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            font-family: monospace;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            z-index: 1000;
+            overflow: auto;
+        }
+        
+        .preview-container {
+            display: flex;
+            width: 95%;
+            height: 90%;
+            margin: 2% auto;
+            background-color: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        
+        .options-panel {
+            width: 25%;
+            background-color: var(--light-gray);
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid var(--medium-gray);
+        }
+        
+        .preview-panel {
+            width: 75%;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .options-section {
+            margin-bottom: 20px;
+        }
+        
+        .options-section h3 {
+            margin-bottom: 10px;
+            color: var(--secondary-color);
+        }
+        
+        .checkbox-group {
+            margin-bottom: 5px;
+        }
+        
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .checkbox-group input {
+            margin-right: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--medium-gray);
+            margin-bottom: 15px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab.active {
+            font-weight: bold;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .code-container {
+            position: relative;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .copy-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            overflow-x: auto;
+            white-space: pre-wrap;
+            font-family: monospace;
+            border: 1px solid var(--medium-gray);
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+        
+        .close-btn:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .radio-group {
+            margin-bottom: 10px;
+        }
+        
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 5px;
+        }
+        
+        .radio-group input {
+            margin-right: 10px;
+        }
+        
+        /* Team Directory CSS */
+        .team-directory-container {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .team-section {
+            margin-bottom: 30px;
+        }
+        
+        .team-section-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .team-members {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .team-member-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 300px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .team-member-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .member-photo {
+            height: 200px;
+            background-color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .member-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .member-info {
+            padding: 20px;
+        }
+        
+        .member-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        
+        .member-title {
+            color: #3498db;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .member-bio {
+            margin-bottom: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #555;
+        }
+        
+        .member-details {
+            margin-bottom: 15px;
+        }
+        
+        .member-detail {
+            margin-bottom: 8px;
+            font-size: 14px;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .member-detail i {
+            width: 20px;
+            margin-right: 10px;
+            color: #3498db;
+        }
+        
+        .member-skills {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        
+        .member-skills-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        
+        .member-quote {
+            margin-top: 15px;
+            font-style: italic;
+            color: #666;
+            font-size: 14px;
+            border-left: 3px solid #3498db;
+            padding-left: 10px;
+        }
+        
+        .member-fun-facts {
+            margin-top: 15px;
+            font-size: 14px;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .member-fun-facts-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        
+        .member-socials {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .social-link {
+            color: #3498db;
+            font-size: 20px;
+            transition: color 0.3s;
+        }
+        
+        .social-link:hover {
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>csv2team</h1>
+		<p class="description">Generate Company's Team Page HTML from CSV</p>    
+        <div class="input-section">
+            <h2>Paste Your Team Member Details in csv Format</h2>
+            <textarea id="csvInput" placeholder="Paste your CSV data here...">First Name,Last Name,Job Title/Position,Department/Team,Office Location,Public Email Address,Public Phone Number,Profile Picture URL/Filename,Short Bio/Description,Areas of Expertise/Skills,LinkedIn Profile URL,Twitter/X Profile URL,Start Date with Company,Personal Quote,Fun Facts,Order/Display Rank
+Sarah,Johnson,Chief Executive Officer,Executive,New York,sarah.johnson@example.com,+1-212-555-0101,sarah_johnson.jpg,"Sarah has over 20 years of experience in tech leadership and previously led growth initiatives at Fortune 500 companies.","Strategic Planning, Leadership, Public Speaking, Market Analysis","https://linkedin.com/in/sarahjohnson","https://twitter.com/sarahjohnson",2018-06-15,"Innovation distinguishes between a leader and a follower.","Sarah has climbed Mount Kilimanjaro and speaks fluent Mandarin.",1
+Michael,Rodriguez,Chief Technology Officer,Engineering,San Francisco,michael.rodriguez@example.com,+1-415-555-0102,michael_rodriguez.jpg,"Michael built his first computer at age 12 and has been passionate about technological innovation ever since.","Software Architecture, AI/ML, Cloud Computing, DevOps","https://linkedin.com/in/michaelrodriguez","https://twitter.com/mrodrigueztech",2019-02-20,"Technology is best when it brings people together.","Michael is an amateur astronomer and has a collection of vintage calculators.",2
+Jennifer,Chen,Marketing Director,Marketing,Chicago,jennifer.chen@example.com,+1-312-555-0103,jennifer_chen.jpg,"Jennifer has transformed marketing operations for multiple tech startups, specializing in data-driven campaign strategies.","Digital Marketing, SEO/SEM, Content Strategy, Analytics","https://linkedin.com/in/jenniferchen","https://twitter.com/jenchen_mktg",2020-04-10,"Great marketing doesn't feel like marketing.","Jennifer has run three marathons and makes award-winning sourdough bread.",3
+David,Williams,Lead UX Designer,Design,Austin,david.williams@example.com,+1-512-555-0104,david_williams.jpg,"David combines his background in psychology and design to create intuitive, user-centered digital experiences.","User Research, UI/UX Design, Prototyping, Accessibility","https://linkedin.com/in/davidwilliams","https://twitter.com/dwilliamsdesign",2020-09-15,"Design is intelligence made visible.","David once designed album artwork for an indie band that went platinum.",4
+Priya,Patel,Senior Software Engineer,Engineering,Remote,priya.patel@example.com,+1-650-555-0105,priya_patel.jpg,"Priya specializes in backend development and has contributed to several open-source projects that power millions of websites.","Java, Python, Microservices, Database Design, System Architecture","https://linkedin.com/in/priyapatel","https://twitter.com/priya_codes",2019-08-02,"Code is like humor. When you have to explain it, it's bad.","Priya is a championship chess player and loves hiking with her two huskies.",5
+James,Thompson,Financial Controller,Finance,Boston,james.thompson@example.com,+1-617-555-0106,james_thompson.jpg,"James brings 15 years of financial expertise across startups and established companies, with a focus on sustainable growth.","Financial Analysis, Strategic Planning, Risk Management, Compliance","https://linkedin.com/in/jamesthompson","https://twitter.com/jthompson_fin",2021-01-10,"Numbers tell the most honest story about a business.","James is a certified sommelier and hosts monthly wine tastings for charity.",6
+Aisha,Jackson,Customer Success Manager,Customer Support,Los Angeles,aisha.jackson@example.com,+1-213-555-0107,aisha_jackson.jpg,"Aisha excels at building strong client relationships and ensuring customers get maximum value from our products.","Customer Experience, Account Management, Problem Solving, Sales","https://linkedin.com/in/aishajackson","https://twitter.com/aisha_success",2022-03-15,"Your success is our success. It's that simple.","Aisha speaks four languages and is an accomplished jazz pianist.",7
+Robert,Kim,HR Director,Human Resources,Seattle,robert.kim@example.com,+1-206-555-0108,robert_kim.jpg,"Robert has revolutionized HR practices at several tech companies, focusing on culture, diversity, and employee development.","Talent Acquisition, DEI Initiatives, Employee Relations, Organizational Development","https://linkedin.com/in/robertkim","https://twitter.com/robertkim_hr",2020-07-20,"Great culture doesn't happen by accident. It's designed.","Robert published a cookbook featuring family recipes passed down for generations.",8
+Elena,Garcia,Product Manager,Product,Denver,elena.garcia@example.com,+1-303-555-0109,elena_garcia.jpg,"Elena has launched successful products across B2B and B2C markets, with a strong focus on user research and iterative development.","Product Strategy, Agile Methodologies, Market Research, Roadmapping","https://linkedin.com/in/elenagarcia","https://twitter.com/elena_product",2021-06-05,"Build products people love, not just products that work.","Elena was a competitive figure skater and now coaches youth on weekends.",9
+Marcus,Lee,Senior Data Scientist,Data,Portland,marcus.lee@example.com,+1-503-555-0110,marcus_lee.jpg,"Marcus transforms complex data into actionable insights that drive business decisions and product development.","Machine Learning, Statistical Analysis, Data Visualization, Big Data","https://linkedin.com/in/marcuslee","https://twitter.com/marcus_data",2021-09-10,"Data tells stories that people sometimes can't see.","Marcus builds custom mechanical keyboards and has a collection of over 20 unique designs.",10</textarea>
+            <button id="previewBtn" class="btn">Preview HTML</button>
+        </div>
+		
+		<div class="footer">
+			<p>
+				by <a href="https://bhupal.net">Bhupal Sapkota</a><br/>
+				<a href="https://bugcrew.net">Berkeley Computer</a><br/><br/>
+				Vibe Coded with Claude 3.7 Sonnet Free Version<br/>
+				(<a href="https://github.com/bhu1st/csv2team">Github</a>) 
+			</p>
+		</div>
+    </div>
+    
+    <div id="previewOverlay" class="overlay">
+        <button class="close-btn">&times;</button>
+        <div class="preview-container">
+            <div class="options-panel">
+                <h2>Display Options</h2>
+                
+                <div class="options-section">
+                    <h3>Group Members By</h3>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="groupBy" value="department"> By Department/Team
+                        </label>
+                        <label>
+                            <input type="radio" name="groupBy" value="rank" checked> By Order/Display Rank
+                        </label>
+                        <label>
+                            <input type="radio" name="groupBy" value="departmentRank"> By Department/Team & Display/Rank
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="options-section">
+                    <h3>Display Fields</h3>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="displayFields" value="firstName" checked> First Name
+                        </label>
+                    </div>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="displayFields" value="lastName" checked> Last Name
+                        </label>
+                    </div>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="displayFields" value="jobTitle" checked> Job Title/Position
+                        </label>
+                    </div>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="displayFields" value="department" checked> Department/Team
+                        </label>
+                    </div>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="displayFields" value="officeLocation"> Office Location
+                        </label>
+                    </div>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="displayFields" value="email"> Email Address
+                        </label>
+                    </div>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="displayFields" value="phone"> Phone Number
+                        </label>
+                    </div>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="displayFields" value="profilePicture"> Profile Picture
+                        </label>
+                    </div>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="displayFields" value="bio" checked> Bio/Description
+                        </label>
+                    </div>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="displayFields" value="expertise" checked> Areas of Expertise/Skills
+                        </label>
+                    </div>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="displayFields" value="linkedin" checked> LinkedIn Profile
+                        </label>
+                    </div>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="displayFields" value="twitter" checked> Twitter/X Profile
+                        </label>
+                    </div>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="displayFields" value="startDate"> Start Date
+                        </label>
+                    </div>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="displayFields" value="quote"> Personal Quote
+                        </label>
+                    </div>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="displayFields" value="funFacts"> Fun Facts
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="preview-panel">
+                <div class="tabs">
+                    <div class="tab active" data-tab="preview">Preview</div>
+                    <div class="tab" data-tab="code">HTML Code</div>
+                </div>
+                
+                <div class="tab-content active" id="previewTab">
+                    <div id="teamPreview"></div>
+                </div>
+                
+                <div class="tab-content" id="codeTab">
+                    <div class="code-container">
+                        <button class="copy-btn">Copy Code</button>
+                        <pre id="htmlCode"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Load demo data into textarea
+            const demoData = $('#csvInput').attr('placeholder');
+            $('#csvInput').val($('#csvInput').text() || demoData);
+            
+            // Preview button click
+            $('#previewBtn').click(function() {
+                processCSV();
+                $('#previewOverlay').fadeIn(300);
+            });
+            
+            // Close button click
+            $('.close-btn').click(function() {
+                $('#previewOverlay').fadeOut(300);
+            });
+            
+            // Tab switching
+            $('.tab').click(function() {
+                const tabId = $(this).data('tab');
+                
+                $('.tab').removeClass('active');
+                $(this).addClass('active');
+                
+                $('.tab-content').removeClass('active');
+                if (tabId === 'preview') {
+                    $('#previewTab').addClass('active');
+                } else {
+                    $('#codeTab').addClass('active');
+                }
+            });
+            
+            // Copy HTML code
+            $('.copy-btn').click(function() {
+                const codeText = $('#htmlCode').text();
+                navigator.clipboard.writeText(codeText).then(function() {
+                    const originalText = $('.copy-btn').text();
+                    $('.copy-btn').text('Copied!');
+                    setTimeout(function() {
+                        $('.copy-btn').text(originalText);
+                    }, 2000);
+                });
+            });
+            
+            // Change display options
+            $('input[name="groupBy"], input[name="displayFields"]').change(function() {
+                generateTeamDirectory();
+            });
+            
+            function processCSV() {
+                const csvData = $('#csvInput').val();
+                
+                Papa.parse(csvData, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        if (results.data && results.data.length > 0) {
+                            window.teamData = results.data;
+                            generateTeamDirectory();
+                        } else {
+                            alert('No valid data found. Please check your CSV format.');
+                        }
+                    },
+                    error: function(error) {
+                        alert('Error parsing CSV: ' + error);
+                    }
+                });
+            }
+            
+            function generateTeamDirectory() {
+                if (!window.teamData) return;
+                
+                const groupBy = $('input[name="groupBy"]:checked').val();
+                const displayFields = [];
+                
+                $('input[name="displayFields"]:checked').each(function() {
+                    displayFields.push($(this).val());
+                });
+                
+                let html = '';
+                const cssStyles = getCSSStyles();
+                
+                // Group members based on selection
+                let groupedMembers = {};
+                
+                if (groupBy === 'department') {
+                    // Group by department
+                    window.teamData.forEach(member => {
+                        const dept = member['Department/Team'] || 'Other';
+                        if (!groupedMembers[dept]) {
+                            groupedMembers[dept] = [];
+                        }
+                        groupedMembers[dept].push(member);
+                    });
+                } else if (groupBy === 'rank') {
+                    // Group by rank
+                    groupedMembers['All Members'] = [...window.teamData].sort((a, b) => {
+                        const rankA = parseInt(a['Order/Display Rank']) || 999;
+                        const rankB = parseInt(b['Order/Display Rank']) || 999;
+                        return rankA - rankB;
+                    });
+                } else if (groupBy === 'departmentRank') {
+                    // Group by department, then sort by rank
+                    window.teamData.forEach(member => {
+                        const dept = member['Department/Team'] || 'Other';
+                        if (!groupedMembers[dept]) {
+                            groupedMembers[dept] = [];
+                        }
+                        groupedMembers[dept].push(member);
+                    });
+                    
+                    // Sort each department by rank
+                    Object.keys(groupedMembers).forEach(dept => {
+                        groupedMembers[dept].sort((a, b) => {
+                            const rankA = parseInt(a['Order/Display Rank']) || 999;
+                            const rankB = parseInt(b['Order/Display Rank']) || 999;
+                            return rankA - rankB;
+                        });
+                    });
+                }
+                
+                // Generate HTML for team directory
+                html += '<div class="team-directory-container">';
+                
+                Object.keys(groupedMembers).forEach(group => {
+                    html += `<div class="team-section">
+                        <h2 class="team-section-title">${group}</h2>
+                        <div class="team-members">`;
+                    
+                    groupedMembers[group].forEach(member => {
+                        html += generateMemberCard(member, displayFields);
+                    });
+                    
+                    html += '</div></div>';
+                });
+                
+                html += '</div>';
+                
+                // Update preview and code
+                $('#teamPreview').html(html);
+                
+                // Generate HTML code with CSS
+                const fullHtml = `<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+${cssStyles}
+</style>
+
+${html}`;
+                
+                $('#htmlCode').text(fullHtml);
+            }
+            
+            function generateMemberCard(member, displayFields) {
+                let card = '<div class="team-member-card">';
+                
+                // Profile Picture
+                if (displayFields.includes('profilePicture')) {
+                    card += '<div class="member-photo">';
+                    if (member['Profile Picture URL/Filename']) {
+                        card += `<img src="${member['Profile Picture URL/Filename']}" alt="${member['First Name']} ${member['Last Name']}">`;
+                    }
+                    card += '</div>';
+                }
+                
+                card += '<div class="member-info">';
+                
+                // Name
+                if (displayFields.includes('firstName') || displayFields.includes('lastName')) {
+                    card += '<h3 class="member-name">';
+                    if (displayFields.includes('firstName')) card += member['First Name'];
+                    if (displayFields.includes('firstName') && displayFields.includes('lastName')) card += ' ';
+                    if (displayFields.includes('lastName')) card += member['Last Name'];
+                    card += '</h3>';
+                }
+                
+                // Job Title
+                if (displayFields.includes('jobTitle') && member['Job Title/Position']) {
+                    card += `<div class="member-title">${member['Job Title/Position']}</div>`;
+                }
+                
+                // Department
+                if (displayFields.includes('department') && member['Department/Team']) {
+                    card += `<div class="member-detail"><i class="fas fa-users"></i> ${member['Department/Team']}</div>`;
+                }
+                
+                // Bio
+                if (displayFields.includes('bio') && member['Short Bio/Description']) {
+                    card += `<div class="member-bio">${member['Short Bio/Description']}</div>`;
+                }
+                
+                // Details section
+                let detailsAdded = false;
+                card += '<div class="member-details">';
+                
+                // Office Location
+                if (displayFields.includes('officeLocation') && member['Office Location']) {
+                    card += `<div class="member-detail"><i class="fas fa-map-marker-alt"></i> ${member['Office Location']}</div>`;
+                    detailsAdded = true;
+                }
+                
+                // Email
+                if (displayFields.includes('email') && member['Public Email Address']) {
+                    card += `<div class="member-detail"><i class="fas fa-envelope"></i> <a href="mailto:${member['Public Email Address']}">${member['Public Email Address']}</a></div>`;
+                    detailsAdded = true;
+                }
+                
+                // Phone
+                if (displayFields.includes('phone') && member['Public Phone Number']) {
+                    card += `<div class="member-detail"><i class="fas fa-phone"></i> ${member['Public Phone Number']}</div>`;
+                    detailsAdded = true;
+                }
+                
+                // Start Date
+                if (displayFields.includes('startDate') && member['Start Date with Company']) {
+                    const startDate = new Date(member['Start Date with Company']);
+                    const formattedDate = startDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                    card += `<div class="member-detail"><i class="fas fa-calendar-alt"></i> Joined: ${formattedDate}</div>`;
+                    detailsAdded = true;
+                }
+                
+                card += '</div>'; // Close member-details
+                
+                // Expertise/Skills
+                if (displayFields.includes('expertise') && member['Areas of Expertise/Skills']) {
+                    card += `<div class="member-skills">
+                        <div class="member-skills-title">Areas of Expertise:</div>
+                        ${member['Areas of Expertise/Skills']}
+                    </div>`;
+                }
+                
+                // Personal Quote
+                if (displayFields.includes('quote') && member['Personal Quote']) {
+                    card += `<div class="member-quote">"${member['Personal Quote']}"</div>`;
+                }
+                
+                // Fun Facts
+                if (displayFields.includes('funFacts') && member['Fun Facts']) {
+                    card += `<div class="member-fun-facts">
+                        <div class="member-fun-facts-title">Fun Facts:</div>
+                        ${member['Fun Facts']}
+                    </div>`;
+                }
+                
+                // Social Links
+                if (displayFields.includes('linkedin') || displayFields.includes('twitter')) {
+                    card += '<div class="member-socials">';
+                    
+                    if (displayFields.includes('linkedin') && member['LinkedIn Profile URL']) {
+                        card += `<a href="${member['LinkedIn Profile URL']}" target="_blank" class="social-link"><i class="fab fa-linkedin"></i></a>`;
+                    }
+                    
+                    if (displayFields.includes('twitter') && member['Twitter/X Profile URL']) {
+                        card += `<a href="${member['Twitter/X Profile URL']}" target="_blank" class="social-link"><i class="fab fa-x-twitter"></i></a>`;
+                    }
+                    
+                    card += '</div>';
+                }
+                
+                card += '</div>'; // Close member-info
+                card += '</div>'; // Close team-member-card
+                
+                return card;
+            }
+            
+            function getCSSStyles() {
+                // Return only the CSS needed for the team directory
+                return `.team-directory-container {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.team-section {
+    margin-bottom: 30px;
+}
+
+.team-section-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #3498db;
+}
+
+.team-members {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.team-member-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    width: 300px;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.team-member-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.member-photo {
+    height: 200px;
+    background-color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.member-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.member-info {
+    padding: 20px;
+}
+
+.member-name {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #2c3e50;
+}
+
+.member-title {
+    color: #3498db;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.member-bio {
+    margin-bottom: 15px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #555;
+}
+
+.member-details {
+    margin-bottom: 15px;
+}
+
+.member-detail {
+    margin-bottom: 8px;
+    font-size: 14px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.member-detail i {
+    width: 20px;
+    margin-right: 10px;
+    color: #3498db;
+}
+
+.member-skills {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.member-skills-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #2c3e50;
+}
+
+.member-quote {
+    margin-top: 15px;
+    font-style: italic;
+    color: #666;
+    font-size: 14px;
+    border-left: 3px solid #3498db;
+    padding-left: 10px;
+}
+
+.member-fun-facts {
+    margin-top: 15px;
+    font-size: 14px;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.member-fun-facts-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #2c3e50;
+}
+
+.member-socials {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.social-link {
+    color: #3498db;
+    font-size: 20px;
+    transition: color 0.3s;
+}
+
+.social-link:hover {
+    color: #2c3e50;
+}`;
+            }
+            
+            // Initialize with sample data (optional)
+            if ($('#csvInput').val()) {
+                processCSV();
+            }
+        });
+    </script>
+</body>
+</html>
